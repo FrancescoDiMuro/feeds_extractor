@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Feed;
+use App\Models\InstagramSource;
+use App\Models\TikTokSource;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,9 +18,16 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
+
+        Feed::factory()
+        ->count(10)
+        ->has(InstagramSource::factory()->count(1))
+        ->has(TikTokSource::factory()->count(1))
+        ->hasPosts(10)
+        ->create();
     }
 }
