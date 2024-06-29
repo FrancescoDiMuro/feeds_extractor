@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('tik_tok_sources', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
         });
     }
 

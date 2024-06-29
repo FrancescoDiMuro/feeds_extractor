@@ -8,4 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class TikTokSource extends Model
 {
     use HasFactory;
+
+    // Removing the timestamps columns from the model
+    public $timestamps = false;
 }
