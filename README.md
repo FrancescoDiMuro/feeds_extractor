@@ -129,4 +129,12 @@ Proceeding step by step:<br>
     php artisan make:factory [FactoryName]
     ```
 
-2. I added the `factory()` for each model to the DatabaseSeeder.php file:
+2. I added the `factory()` for the `Feed` model to the `DatabaseSeeder.php` file:
+    ```php
+    Feed::factory()
+        ->count(10)
+        ->has(InstagramSource::factory()->count(1))
+        ->has(TikTokSource::factory()->count(1))
+        ->hasPosts(10)
+        ->create();
+    ```
