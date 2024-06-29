@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('instagram_sources', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->unique();
+            $table->integer('fan_count');
+            $table->foreignId('feed_id')->nullable()->constrained();
         });
     }
 
