@@ -6,6 +6,8 @@ use App\Services\FeedService;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class CopyFeed extends Command implements PromptsForMissingInput
 {
@@ -24,7 +26,7 @@ class CopyFeed extends Command implements PromptsForMissingInput
      *
      * @var string
      */
-    protected $description = 'Extracts a feed and the associated sources, optionally with posts, using the feed id.';
+    protected $description = 'Extracts a feed and the associated sources, with an optional number of posts, using the feed id.';
 
     protected function promptForMissingArgumentsUsing(): array {
         return [
@@ -36,46 +38,92 @@ class CopyFeed extends Command implements PromptsForMissingInput
      * Execute the console command.
      */
     public function handle(FeedService $feedService) {
-        $feedId = $this->argument('feedId');
-        $only = $this->option('only');
-        $includePosts = $this->option('include-posts');
         
-        $value = $feedId . $only . $includePosts;
+        // Obtaining the various user's inputs
+        $feedId = $this->argument('feedId');
+        $specificSource = $this->option('only');
+        $numberOfPosts = $this->option('include-posts');
 
-        $result = $feedService->retrieveFeed(
-            feedId: $feedId, 
-            only: $only, 
-            includePosts: $includePosts
+        // Define the validation rules to validate the user's inputs
+        $validationRules = [
+            'feedId'=> ['integer'],
+            'only' => ['nullable', Rule::in(['instagram', 'tiktok'])],
+            'includePosts'=> ['nullable', 'integer', 'gte:1'],
+        ];
+
+        // Define the data which has to be validated
+        $dataToBeValidated = array_combine(
+            array_keys($validationRules),
+            [$feedId, $specificSource, $numberOfPosts]
         );
 
-        if(!empty($result)) {
+        // Validate the data
+        $validator = Validator::make(
+            data: $dataToBeValidated, 
+            rules: $validationRules
+        );
 
-            $feed = $result['feed'];
-            $sources = $result['feedSources'];
-            $posts = $result['feedPosts'];
+        // If the validation fails
+        if ($validator->fails()) {
 
-            $sourcesRows = [];
+            // Warn the user
+            $this->warn('Cannot proceed with the feed extraction!');
+        
+            // Display the errors
+            foreach ($validator->errors()->all() as $error) {
+                $this->error($error);
+            }
+
+            // Exit code (KO)
+            return 1;
+        }
+
+        // Retrieve an array of information from the feed,
+        // with the specified parameters
+        $feedInformation = $feedService->retrieveFeed(
+            feedId: $feedId, 
+            only: $specificSource, 
+            includePosts: $numberOfPosts
+        );
+
+        // If the information have been correctly obtained
+        if(!empty($feedInformation)) {
+
+            // Extract the various information from the result array
+            $feedData = $feedInformation['feed'];
+            $sourcesData = $feedInformation['feedSources'];
+            $posts = $feedInformation['feedPosts'];
+
+            // Build the CLI from the result
+            // Feeds
             $this->line('FEEDS');
-            $this->table(['id', 'name'], [$feed]);
-            if(is_array($sources)) {
-                foreach($sources as $source) {
-                    $sourcesRows[] = $source->toArray();
-                }
-            }
-            else {
-                $sourcesRows[] = $sources->toArray();
-            }
+            $this->table(['Id', 'Name'], [$feedData]);
             $this->newLine();
-            $this->line('SOURCES');
-            $this->table(['id', 'name', 'fan_count', 'feed_id'], $sourcesRows);
 
-            $this->newLine();
-            $this->line('POSTS');
-            $this->table(['id', 'url', 'feed_id'], $posts);
+            // Sources
+            if(!empty($sourcesData)) {
+                $this->line('SOURCES');
+                $this->table(['Id', 'Name', 'Fan Count', 'Feed Id'], $sourcesData);
+                $this->newLine();
+            }
+            
+            // Posts
+            if(!empty($posts)) {
+                $this->line('POSTS');
+                $this->table(['Id', 'URL', 'Feed Id'], $posts);
+            }
+            
+            // Exit code (OK)
+            return 0;
 
         }
         else {
+            
+            // Warn the user
             $this->warn('No feeds found with id "' . $feedId . '"!');
+            
+            // Exit code (KO)
+            return 1;
         }
         
     }
