@@ -6,7 +6,7 @@ use App\Models\Feed;
 
 class FeedService {
 
-    public function retrieveFeed(int $feedId, ?string $only, ?int $includePosts): array {
+    public function retrieveFeed(int $feedId, ?string $only = null, ?int $includePosts = null): array {
         
         // Retrieve the feed from the db
         $feed = Feed::find($feedId);
