@@ -97,7 +97,7 @@ protected $signature = 'copy
 Defining the `$description` attribute, I was able to set a description for the command:
 
 ```php
-protected $description = 'Extracts a feed and the associated sources, optionally with posts, using the feed id.';
+protected $description = 'Extracts a feed and the associated sources, with an optional number of posts, using the feed id.';
 ```
 
 Since the command has a mandatory parameter (`feedId`), I proceeded to implement the interface `PromptsForMissingInput`:
