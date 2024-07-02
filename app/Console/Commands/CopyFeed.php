@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Services\FeedService;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -26,7 +26,7 @@ class CopyFeed extends Command implements PromptsForMissingInput
      *
      * @var string
      */
-    protected $description = 'Extracts a feed and the associated sources, with an optional number of posts, using the feed id.';
+    protected $description = 'Copy a feed and related data from a source db to a target db (see options).';
 
     protected function promptForMissingArgumentsUsing(): array {
         return [
@@ -67,64 +67,93 @@ class CopyFeed extends Command implements PromptsForMissingInput
         if ($validator->fails()) {
 
             // Warn the user
-            $this->warn('Cannot proceed with the feed extraction!');
+            $this->error('Cannot proceed with the feed extraction!');
         
             // Display the errors
-            foreach ($validator->errors()->all() as $error) {
-                $this->error($error);
+            foreach ($validator->errors()->all() as $key => $error) {
+                $this->warn(($key + 1) . '. ' . $error);
             }
 
             // Exit code (KO)
             return 1;
         }
 
-        // Retrieve an array of information from the feed,
-        // with the specified parameters
-        $feedInformation = $feedService->retrieveFeed(
+        // Obtain (or define) the source and target connections
+        $sourceConnection = env('SOURCE_CONNECTION') ?? 'sqlite_source';
+        $targetConnection = env('TARGET_CONNECTION') ?? 'sqlite_target';
+
+        // Copy the feed, and store the result
+        $copyResult = $feedService->copyFeed(
+            sourceConnection: $sourceConnection,
+            targetConnection: $targetConnection,
             feedId: $feedId, 
             only: $specificSource, 
             includePosts: $numberOfPosts
         );
-
-        // If the information have been correctly obtained
-        if(!empty($feedInformation)) {
-
-            // Extract the various information from the result array
-            $feedData = $feedInformation['feed'];
-            $sourcesData = $feedInformation['feedSources'];
-            $posts = $feedInformation['feedPosts'];
-
-            // Build the CLI from the result
-            // Feeds
-            $this->line('FEEDS');
-            $this->table(['Id', 'Name'], [$feedData]);
-            $this->newLine();
-
-            // Sources
-            if(!empty($sourcesData)) {
-                $this->line('SOURCES');
-                $this->table(['Id', 'Name', 'Fan Count', 'Feed Id'], $sourcesData);
-                $this->newLine();
+        
+        try {
+            if($copyResult) {
+                $this->info("Copy feed ($feedId) from source ($sourceConnection) db to target ($targetConnection) db completed successfully!");
             }
-            
-            // Posts
-            if(!empty($posts)) {
-                $this->line('POSTS');
-                $this->table(['Id', 'URL', 'Feed Id'], $posts);
+            else {
+                $this->warn('No feeds found with id "' . $feedId . '"!');
             }
-            
-            // Exit code (OK)
-            return 0;
-
         }
-        else {
-            
-            // Warn the user
-            $this->warn('No feeds found with id "' . $feedId . '"!');
-            
-            // Exit code (KO)
-            return 1;
+        catch(Exception $e) {
+            $this->error($e->getMessage());
         }
         
+        if($copyResult) {
+
+            $answer = $this->ask(
+                question: 'Do you want to see the results (y/n)?', 
+                default: 'y'
+            );
+
+            if(strtolower($answer) == 'n') {
+                $this->info('Ok. Bye!');
+                return 0;
+            }
+
+            // Retrieve an array of information from the feed,
+            // with the specified parameters
+            $feedInformation = $feedService->retrieveFeed(
+            connection: $targetConnection,
+            feedId: $feedId, 
+            only: $specificSource, 
+            includePosts: $numberOfPosts
+            );
+
+            // If the information have been correctly obtained
+            if(!empty($feedInformation)) {
+
+                // Extract the various information from the result array
+                $feedData = $feedInformation['feed'];
+                $sourcesData = $feedInformation['feedSources'];
+                $posts = $feedInformation['feedPosts'];
+
+                // Build the CLI from the result
+                // Feeds
+                $this->line('FEEDS');
+                $this->table(['Id', 'Name'], [$feedData]);
+                $this->newLine();
+
+                // Sources
+                if(!empty($sourcesData)) {
+                    $this->line('SOURCES');
+                    $this->table(['Id', 'Name', 'Fan Count', 'Feed Id'], $sourcesData);
+                    $this->newLine();
+                }
+                
+                // Posts
+                if(!empty($posts)) {
+                    $this->line('POSTS');
+                    $this->table(['Id', 'URL', 'Feed Id'], $posts);
+                }
+                
+                // Exit code (OK)
+                return 0;
+            }
+        }        
     }
 }
