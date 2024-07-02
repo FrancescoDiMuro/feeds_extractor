@@ -9,6 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Post extends Model
 {
     use HasFactory;
+    
+    protected $fillable = [
+        'id',
+        'url',
+        'feed_id'
+    ];
 
     // Removing the timestamps columns from the model
     public $timestamps = false;

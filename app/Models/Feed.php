@@ -14,6 +14,11 @@ class Feed extends Model
     // Removing the timestamps columns from the model
     public $timestamps = false;
 
+    protected $fillable = [
+        'id',
+        'name'
+    ];
+
     // One to One relationship with InstagramSource
     public function instagramSource(): HasOne {
         return $this->hasOne(InstagramSource::class);

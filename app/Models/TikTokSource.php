@@ -10,6 +10,14 @@ class TikTokSource extends Model
 {
     use HasFactory;
 
+    // Set the fillable model's attributes
+    protected $fillable = [
+        'id',
+        'name',
+        'fan_count',
+        'feed_id'
+    ];
+
     // Removing the timestamps columns from the model
     public $timestamps = false;
 
