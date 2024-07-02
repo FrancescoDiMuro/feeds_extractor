@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->integer('fan_count');
-            $table->foreignId('feed_id')->nullable()->constrained();
+            $table->foreignId('feed_id')->constrained()->onDelete('cascade');
         });
     }
 

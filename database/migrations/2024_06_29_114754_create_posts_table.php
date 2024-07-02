@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
             $table->string('url');
-            $table->foreignId('feed_id')->constrained();
+            $table->foreignId('feed_id')->constrained()->onDelete('cascade');
         });
     }
 
