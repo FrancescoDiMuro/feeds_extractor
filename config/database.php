@@ -38,6 +38,20 @@ return [
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
+        'sqlite_source' => [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL_SOURCE'),
+            'database' => env('DB_DATABASE_SOURCE', database_path('source.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+        ],
+        'sqlite_target' => [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL_TARGET'),
+            'database' => env('DB_DATABASE_TARGET', database_path('target.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+        ],
 
         'mysql' => [
             'driver' => 'mysql',
