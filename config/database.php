@@ -38,6 +38,7 @@ return [
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
+        
         'sqlite_source' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL_SOURCE'),
@@ -45,6 +46,7 @@ return [
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
+
         'sqlite_target' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL_TARGET'),
