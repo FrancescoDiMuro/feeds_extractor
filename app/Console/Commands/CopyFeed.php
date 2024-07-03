@@ -97,6 +97,7 @@ class CopyFeed extends Command implements PromptsForMissingInput
             }
             else {
                 $this->warn('No feeds found with id "' . $feedId . '"!');
+                return 0;
             }
         }
         catch(Exception $e) {
