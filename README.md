@@ -33,7 +33,7 @@ Once you've correctly setup up the application, you're ready to run the applicat
 php artisan copy <feedId> [options]
 ```
 
-where `feedId` is a positive integer greater than zero, and options are `--only=instagram|tiktok` and '--include-posts=n`, with n as a positive integer number grater than zero.
+where `feedId` is a positive integer greater than zero, and options are `--only=instagram|tiktok` and `--include-posts=n`, with n as a positive integer number grater than zero.
 
 In case of bad or missing inputs, the user will be shown which are the errors.
 
